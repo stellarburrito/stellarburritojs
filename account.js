@@ -232,7 +232,7 @@ class Account {
             else if (!StellarSdk.StrKey.isValidEd25519PublicKey(destination))
                 reject('Invalid destination ' + errorManager('keyPair', -1))
             let that = this
-            this.setOptions({ destination })
+            this.setOptions({ inflationDest:destination })
                 .then(function (result) {
                     that.inflation_destination = destination
                     resolve(result)
@@ -628,14 +628,13 @@ class Account {
                             return
                         })
                         .then(function (sourceAccount) {
+                            let Acc = new Account(newAccount.secret())
                             if (assetCode === 'unsetted') {
-                                let Acc = new Account(newAccount.secret())
                                 resolve(Acc)
                                 return
                             }
-                            changeTrust(newAccount.secret(), issuer, assetCode, trustLimit, memoTypeTrust, memoTrust)
+                            Acc.changeTrust( issuer, assetCode, trustLimit)
                                 .then(function (result) {
-                                    let Acc = new Account(newAccount.secret())
                                     resolve(Acc)
                                     return
                                 })
