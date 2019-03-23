@@ -1,4 +1,3 @@
-
 let StellarSdk=require('stellar-sdk')
 let Fee=require('./fee')
 let Asset=require('./asset')

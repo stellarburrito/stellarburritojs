@@ -1,20 +1,21 @@
-# Stellar Burrito  
-## A simple wrapper for stellar-sdk  
-
-[Docs Here](https://www.winetrack.it/stellarburrito/)  
-### Tutorials  
-
-[How to create and fund an account using stellarburrito](https://medium.com/@andrea.borio/create-new-account-on-stellar-using-stellarburritojs-27a34d759a78)  
-[How to create a new asset using stellarburrito](https://medium.com/@andrea.borio/create-new-asset-on-stellar-using-stellarburrito-96965ab7afb8)   
-[Pay on Stellar using stellarburrito](https://medium.com/@andrea.borio/pay-on-stellar-using-stellar-burrito-4aaa46df518)
-[Manage flags using stellarburrito](https://medium.com/@andrea.borio/manage-flags-using-stellar-burrito-e6eb0a483b7)
-
-
+# StellarBurrito
+StellarBurrito is an opensource wrapper for js stellar-sdk 
 ![Mymage](https://i.ibb.co/dDRV0Rm/logo.png)  
 
 
-
-If you want to collaborate with this library reach me on keybase @andreaborio!
-
-
-
+###Getting Started
+#####Create a testnet account  
+This will create a new account on **testnet** with 10 000 XLM
+```javascript
+let Account=require('stellarburrito').Account
+let Alice= new Account()
+await Alice.createTestAccount()
+ ```
+ #####Pay
+Let's pay 10 XLM From Alice to Bob
+ ```javascript
+ let Account=require('stellarburrito').Account
+ let Alice= new Account('SDIMQ463MVOETWAOBXLSUSSZNKMA7GOCZBS4QKVYJJC53IPUAOW2QRTR')
+ let Bob = new Account('GBQWXG6TVJ52GGW77WM6ZJKZKWG5O5Q6T4KKTMPXTW6NNH66J4ZOBNYJ')
+ await Alice.Pay({destination:Bob,amount:'10'})
+  ```
