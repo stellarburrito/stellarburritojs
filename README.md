@@ -3,15 +3,15 @@ StellarBurrito is an opensource wrapper for js stellar-sdk
 ![Mymage](https://i.ibb.co/dDRV0Rm/logo.png)  
 
 
-###Getting Started
-#####Create a testnet account  
+### Getting Started
+##### Create a testnet account  
 This will create a new account on **testnet** with 10 000 XLM
 ```javascript
 let Account=require('stellarburrito').Account
 let Alice= new Account()
 await Alice.createTestAccount()
  ```
- #####Pay
+ ##### Pay
 Let's pay 10 XLM From Alice to Bob
  ```javascript
  let Account=require('stellarburrito').Account
