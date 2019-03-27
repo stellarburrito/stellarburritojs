@@ -6,10 +6,11 @@ const errorManager = require('./error')
 const memoCreator = require('./memo')
 const Fee = require('./fee')
 let fee
+
 class Account {
     /**
-     * 
-     * @param {string} key -> Pass a public or a private key  
+     *
+     * @param {string} key -> Pass a public or a private key
      */
     constructor(key) {
         fee = new Fee()
@@ -24,16 +25,13 @@ class Account {
             if (StellarSdk.StrKey.isValidEd25519SecretSeed(key)) {
                 this.privateKey = key
                 this.publicKey = StellarSdk.Keypair.fromSecret(key).publicKey()
-            }
-            else if (StellarSdk.StrKey.isValidEd25519PublicKey(key)) {
+            } else if (StellarSdk.StrKey.isValidEd25519PublicKey(key)) {
                 this.publicKey = key
                 this.privateKey = null
-            }
-            else {
+            } else {
                 throw ('Wrong key! Please provide a correct PublicKey or a correct PrivateKey')
             }
-        }
-        else {
+        } else {
             this.publicKey = null
             this.privateKey = null
         }
@@ -53,11 +51,13 @@ class Account {
         this.operations = []
         this.trades = []
     }
+
     newKeypair() {
         let key = StellarSdk.Keypair.random()
         this.privateKey = key.secret()
         this.publicKey = key.publicKey()
     }
+
     async Load() {
         return new Promise((resolve, reject) => {
             if (!StellarSdk.StrKey.isValidEd25519PublicKey(this.publicKey)) {
@@ -81,7 +81,10 @@ class Account {
                 .then(function (page) {
                     for (let i = 0; i < page.balances.length; i++) {
                         if (typeof page.balances[i].asset_issuer != 'undefined')
-                            that.trustlines.push({ asset_code: page.balances[i].asset_code, asset_issuer: page.balances[i].asset_issuer })
+                            that.trustlines.push({
+                                asset_code: page.balances[i].asset_code,
+                                asset_issuer: page.balances[i].asset_issuer
+                            })
                         that.balances.push(page.balances[i])
                     }
                     that.data = page.data_attr
@@ -100,10 +103,11 @@ class Account {
                 })
         })
     }
+
     async loadPayments(limit = 10, order = 'desc', cursor = 'now') {
         return new Promise((resolve, reject) => {
-            this.payments=[]
-            let that=this
+            this.payments = []
+            let that = this
             server.payments()
                 .forAccount(this.publicKey)
                 .order(order)
@@ -124,10 +128,11 @@ class Account {
                 })
         })
     }
+
     async loadTrades(limit = 10, order = 'desc', cursor = 'now') {
         return new Promise((resolve, reject) => {
-            this.trades=[]
-            let that=this
+            this.trades = []
+            let that = this
             server.trades()
                 .forAccount(this.publicKey)
                 .order(order)
@@ -137,7 +142,7 @@ class Account {
                 .then(function (page) {
                     let i = 0
                     while (i < page.records.length) {
-                            that.trades.push(page.records[i])
+                        that.trades.push(page.records[i])
                         i++
                     }
                     resolve()
@@ -147,10 +152,11 @@ class Account {
                 })
         })
     }
+
     async loadEffects(limit = 10, order = 'desc', cursor = 'now') {
         return new Promise((resolve, reject) => {
-            this.effects=[]
-            let that=this
+            this.effects = []
+            let that = this
             server.effects()
                 .forAccount(this.publicKey)
                 .order(order)
@@ -170,10 +176,11 @@ class Account {
                 })
         })
     }
-      async loadTransactions(limit = 10, order = 'desc', cursor = 'now') {
+
+    async loadTransactions(limit = 10, order = 'desc', cursor = 'now') {
         return new Promise((resolve, reject) => {
-            this.transactions=[]
-            let that=this
+            this.transactions = []
+            let that = this
             server.transactions()
                 .forAccount(this.publicKey)
                 .order(order)
@@ -193,6 +200,7 @@ class Account {
                 })
         })
     }
+
     async setOptions(payload) {
         return new Promise((resolve, reject) => {
             let des = StellarSdk.Keypair.fromSecret(this.privateKey)
@@ -218,13 +226,14 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set Inflation Destination
-    * set inflation destination for the given account
-    *
-    * @param {string} destination - The public key of inflation destination
-    * @param {number} timeout - Timeout in seconds
-    */
+     * Set Inflation Destination
+     * set inflation destination for the given account
+     *
+     * @param {string} destination - The public key of inflation destination
+     * @param {number} timeout - Timeout in seconds
+     */
     async setInlationDestination(destination) {
         return new Promise((resolve, reject) => {
             if (typeof destination == 'object' && destination.constructor.name == "Account")
@@ -232,7 +241,7 @@ class Account {
             else if (!StellarSdk.StrKey.isValidEd25519PublicKey(destination))
                 reject('Invalid destination ' + errorManager('keyPair', -1))
             let that = this
-            this.setOptions({ inflationDest:destination })
+            this.setOptions({inflationDest: destination})
                 .then(function (result) {
                     that.inflation_destination = destination
                     resolve(result)
@@ -242,17 +251,18 @@ class Account {
                 })
         })
     }
+
     /**
-* Set Home domain
-* set home domain for the given account
-*
-* @param {string} homeDomain - The homedomain that you want to set
-* @param {number} timeout - Timeout in seconds
-*/
-    async  setHomeDomain(homeDomain) {
+     * Set Home domain
+     * set home domain for the given account
+     *
+     * @param {string} homeDomain - The homedomain that you want to set
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setHomeDomain(homeDomain) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ homeDomain })
+            this.setOptions({homeDomain})
                 .then(function (result) {
                     that.Load(that.publicKey)
                     resolve(result)
@@ -262,39 +272,15 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set Flag
-    * set Flag for the given account
-    *
-    * @param {string} Flag -1 for Authorization required 2 for Authorization revocable 4 forAuthorization immutable 
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setFlag(Flag) {
-        return new Promise((resolve, reject) => {
-            let that = this
-            if (Flag != 1 && Flag != 2 && Flag != 4)
-                reject({
-                    message: 'Allowed flag values ==> 1 , 2 , 4',
-                    error: 'Incorrect flag.'
-                })
-            this.setOptions({ setFlags: Flag })
-                .then(function (result) {
-                    that.Load(that.publicKey)
-                    resolve(result)
-                })
-                .catch(function (error) {
-                    reject('Tx error_' + error)
-                })
-        })
-    }
-    /**
-    * Clear Flag
-    * Clear a specific flag for the given account
-    *
-    * @param {string} Flag -1 for Authorization required 2 for Authorization revocable 4 forAuthorization immutable 
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  clearFlag(Flag) {
+     * Set Flag
+     * set Flag for the given account
+     *
+     * @param {string} Flag -1 for Authorization required 2 for Authorization revocable 4 forAuthorization immutable
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setFlag(Flag) {
         return new Promise((resolve, reject) => {
             let that = this
             if (Flag != 1 && Flag != 2 && Flag != 4)
@@ -302,7 +288,7 @@ class Account {
                     message: 'Allowed flag values ==> 1 , 2 , 4',
                     error: 'Incorrect flag.'
                 })
-            this.setOptions({ clearFlags: Flag })
+            this.setOptions({setFlags: Flag})
                 .then(function (result) {
                     that.Load(that.publicKey)
                     resolve(result)
@@ -312,15 +298,42 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set Signer
-    * Set a new signer for the given account
-    *
-    * @param {string} signer - The public key of the new signer 
-    * @param {number} weight - weight for the signer 0-255
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setSigner(signer, weight) {
+     * Clear Flag
+     * Clear a specific flag for the given account
+     *
+     * @param {string} Flag -1 for Authorization required 2 for Authorization revocable 4 forAuthorization immutable
+     * @param {number} timeout - Timeout in seconds
+     */
+    async clearFlag(Flag) {
+        return new Promise((resolve, reject) => {
+            let that = this
+            if (Flag != 1 && Flag != 2 && Flag != 4)
+                reject({
+                    message: 'Allowed flag values ==> 1 , 2 , 4',
+                    error: 'Incorrect flag.'
+                })
+            this.setOptions({clearFlags: Flag})
+                .then(function (result) {
+                    that.Load(that.publicKey)
+                    resolve(result)
+                })
+                .catch(function (error) {
+                    reject('Tx error_' + error)
+                })
+        })
+    }
+
+    /**
+     * Set Signer
+     * Set a new signer for the given account
+     *
+     * @param {string} signer - The public key of the new signer
+     * @param {number} weight - weight for the signer 0-255
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setSigner(signer, weight) {
         return new Promise((resolve, reject) => {
             if (typeof signer == 'object' && signer.constructor.name == "Account")
                 signer = signer.publicKey
@@ -341,17 +354,18 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set lowthreshold
-    * Set lowthreshold for the given account
-    *
-    * @param {number} lowThreshold - The value of Threshold 0-255
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setLowThreshold(lowThreshold) {
+     * Set lowthreshold
+     * Set lowthreshold for the given account
+     *
+     * @param {number} lowThreshold - The value of Threshold 0-255
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setLowThreshold(lowThreshold) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ lowThreshold })
+            this.setOptions({lowThreshold})
                 .then(function (result) {
                     that.lowThreshold = lowThreshold
                     resolve(result)
@@ -361,17 +375,18 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set mediumthreshold
-    * Set mediumthreshold for the given account
-    *
-    * @param {number} medThreshold - The value of Threshold 0-255
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setMediumThreshold(medThreshold) {
+     * Set mediumthreshold
+     * Set mediumthreshold for the given account
+     *
+     * @param {number} medThreshold - The value of Threshold 0-255
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setMediumThreshold(medThreshold) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ medThreshold })
+            this.setOptions({medThreshold})
                 .then(function (result) {
                     that.medThreshold = medThreshold
                     resolve(result)
@@ -381,17 +396,18 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set highThreshold
-    * Set highthreshold for the given account
-    *
-    * @param {number} highThreshold - The value of Threshold 0-255
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setHighThreshold(highThreshold) {
+     * Set highThreshold
+     * Set highthreshold for the given account
+     *
+     * @param {number} highThreshold - The value of Threshold 0-255
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setHighThreshold(highThreshold) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ highThreshold })
+            this.setOptions({highThreshold})
                 .then(function (result) {
                     that.highThreshold = highThreshold
                     resolve(result)
@@ -401,16 +417,17 @@ class Account {
                 })
         })
     }
+
     /**
-    * Set master weight
-    * Set Master key weight for the given account
-    * @param {number} masterWeight - The weight of master key 0-255
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  setMasterWeight(masterWeight) {
+     * Set master weight
+     * Set Master key weight for the given account
+     * @param {number} masterWeight - The weight of master key 0-255
+     * @param {number} timeout - Timeout in seconds
+     */
+    async setMasterWeight(masterWeight) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ masterWeight })
+            this.setOptions({masterWeight})
                 .then(function (result) {
                     that.masterWeight = masterWeight
                     resolve(result)
@@ -420,16 +437,17 @@ class Account {
                 })
         })
     }
+
     /**
-    * bump sequenge
-    * Bump sequence of the given account
-    * @param {number} bumpTo - The sequence number from 0-9223372036854775807
-    * @param {number} timeout - Timeout in seconds
-    */
-    async  bumpSequence(bumpTo) {
+     * bump sequenge
+     * Bump sequence of the given account
+     * @param {number} bumpTo - The sequence number from 0-9223372036854775807
+     * @param {number} timeout - Timeout in seconds
+     */
+    async bumpSequence(bumpTo) {
         return new Promise((resolve, reject) => {
             let that = this
-            this.setOptions({ bumpTo })
+            this.setOptions({bumpTo})
                 .then(function (result) {
                     that.sequence = bumpTo
                     resolve(result)
@@ -445,7 +463,7 @@ class Account {
      * Account pays receiver an amount of coin.
      * you can specify more than one receiver and use custom asset and custom memo
      * @param {string} opts#destination - The public key of the receiver
-     * @param {string} opts#amount - The amount of coins that sender pays to receiver 
+     * @param {string} opts#amount - The amount of coins that sender pays to receiver
      * @param {string} opts#assetCode - The assetCode of the asset that you want to trust
      * @param {string} opts#issuer - The amount of coin that you want to trust from this issuer
      * @param {string} opts#memoType - The type of memo of the transaction that you want create (text,id,return)
@@ -467,33 +485,39 @@ class Account {
                 reject(memoFinal.memo)
                 return
             }
-            if (typeof issuer == 'object' && issuer.constructor.name == "Account")
-                issuer = issuer.publicKey
-            else if (!StellarSdk.StrKey.isValidEd25519PublicKey(issuer)) {
-                reject('Invalid issuer ' + errorManager('keyPair', -1))
-                return
-            }
+
+
             if (typeof destination == 'object' && destination.constructor.name == "Account")
                 destination = destination.publicKey
-            else if (!StellarSdk.StrKey.isValidEd25519PublicKey(destination)) {
+            if (!StellarSdk.StrKey.isValidEd25519PublicKey(destination)) {
                 reject('Invalid destination ' + errorManager('keyPair', -1))
                 return
             }
             memoFinal = memoFinal.memo
             let des
-            try { des = StellarSdk.Keypair.fromSecret(this.privateKey) }
-            catch (err) {
+            try {
+                des = StellarSdk.Keypair.fromSecret(this.privateKey)
+            } catch (err) {
                 reject(errorManager('keyPair', -1))
                 return
             }
             if (issuer == "native" && assetCode == "native")
                 asset = new StellarSdk.Asset.native()
-            else
-                try { asset = new StellarSdk.Asset(assetCode, issuer) }
-                catch (err) {
+            else {
+                if (typeof issuer == 'object' && issuer.constructor.name == "Account")
+                    issuer = issuer.publicKey
+
+                if (!StellarSdk.StrKey.isValidEd25519PublicKey(issuer)) {
+                    reject('Invalid issuer ' + errorManager('keyPair', -1))
+                    return
+                }
+                try {
+                    asset = new StellarSdk.Asset(assetCode, issuer)
+                } catch (err) {
                     reject(err)
                     return
                 }
+            }
             if (fees === 'undefined') {
                 let fee = new Fee()
                 fees = parseInt(fee.min_accepted_fee)
@@ -502,7 +526,7 @@ class Account {
 
             server.loadAccount(des.publicKey())
                 .then(function (sourceAccount) {
-                    let builder = new StellarSdk.TransactionBuilder(sourceAccount, { fee })
+                    let builder = new StellarSdk.TransactionBuilder(sourceAccount, {fee})
                     if (typeof destination == "string")
                         builder.addOperation(StellarSdk.Operation.payment({
                             destination,
@@ -538,8 +562,84 @@ class Account {
         })
     }
 
+    /**
+     * payment function
+     * Account pays receiver an amount of coin.
+     * you can specify more than one receiver and use custom asset and custom memo
+     * @param {string} opts#destination - The public key of the receiver
+     * @param {string} opts#amount - The amount of coins that sender pays to receiver
+     * @param {string} opts#assetCode - The assetCode of the asset that you want to trust
+     * @param {string} opts#issuer - The amount of coin that you want to trust from this issuer
+     * @param {string} opts#memoType - The type of memo of the transaction that you want create (text,id,return)
+     * @param {string} opts#memo - The content of memo of the change trust transaction that you want create (text,id,return)
+     * @param {Fee} opts#fee - Priority for tx for fee calculation, default min_accepted_fee ->100
+     */
+    async pathPayment(opts = [{}]) {
+        return new Promise(async (resolve, reject) => {
+            let des
+            try {
+                des = StellarSdk.Keypair.fromSecret(this.privateKey)
+            } catch (err) {
+                reject(errorManager('keyPair', -1))
+                return
+            }
+            let sendAsset = []
+            let sendMax = []
+            let destination = []
+            let destAsset = []
+            let destAmount = []
+            let path = []
+            let fees = []
 
-    async  createTestAccount() {
+            let fee = new Fee()
+            await fee.Load()
+            server.loadAccount(this.publicKey)
+                .then(function (sourceAccount) {
+                    let builder = new StellarSdk.TransactionBuilder(sourceAccount, {fee:fee.highPriority})
+                    for (let i = 0; i < opts.length; i++) {
+                        sendAsset.push(opts[i].sendAsset || 'error')
+                        sendMax.push(opts[i].sendMax || 'error')
+                        destination.push(opts[i].destination || 'text')
+                        destAsset.push(opts[i].destAsset || 'default')
+                        destAmount.push(opts[i].destAmount || 'native')
+                        path.push(opts[i].path || 'native')
+                        fees.push(opts[i].fee || 'undefined')
+                        console.log(destination[i])
+                        if (typeof destination[i] == 'object' && destination[i].constructor.name == "Account")
+                            destination[i] = destination[i].publicKey
+                        if (!StellarSdk.StrKey.isValidEd25519PublicKey(destination[i])) {
+                            reject('Invalid destination at ' + i + errorManager('keyPair', -1))
+                            return
+                        }
+                        builder.addOperation(StellarSdk.Operation.pathPayment({
+                            sendAsset: sendAsset[i],
+                            sendMax: sendMax[i],
+                            destination: destination[i],
+                            destAsset: destAsset[i],
+                            destAmount: destAmount[i],
+                            path: path[i]
+                        }))
+                    }
+                    let transaction = builder.build()
+                    transaction.sign(des)
+                    server.submitTransaction(transaction)
+                        .then(function (result) {
+                            resolve(result)
+                        })
+                        .catch(function (error) {
+                            (typeof error.response.data.extras != 'undefined') ? reject(errorManager('payment', error.response.data.extras.result_codes.operations[0])) : reject(error)
+                            return
+                        })
+                })
+                .catch((error) => {
+                    console.log(error)
+                    reject(errorManager('loadAccount', -1))
+                    return
+                })
+        })
+    }
+
+    async createTestAccount() {
         return new Promise((resolve, reject) => {
             let pair = StellarSdk.Keypair.random()
             let that = this
@@ -550,8 +650,7 @@ class Account {
                     that.publicKey = pair.publicKey()
                     resolve()
                     return
-                }
-                else {
+                } else {
                     if (typeof error.response != 'undefined')
                         reject(errorManager('createAccount', error.response.data.extras.result_codes.operations[0]))
                     else
@@ -561,22 +660,23 @@ class Account {
             });
         })
     }
+
     /**
-    * @author Andrea Borio andrea.borio(at)outlook.com
-    * 
-    * Create new account function
-    * privKey, memoTypeCreate, memoCreate are mandatory
-    * Add a trustline on the new account overloading this function
-    *
-    * @param {string} memoTypeCreate - The type of memo the create transaction that you want create (text,id,return)
-    * @param {string} memoCreate - The content of memo the create transaction that you want create 
-    * @param {string} memoTypeTrust - The type of memo the transaction that you want create (text,id,return)
-    * @param {string} startingBalance - The strarting balance of created account
-    * @param {string} memoTrust - The content of memo the change trust transaction that you want create (text,id,return)
-    * @param {string} issuer - The public key of the issuer 
-    * @param {string} assetCode - The assetCode of the asset that you want to trust
-    * @param {string} trustLimit - The amount of coin that you want to trust from this issuer
-    */
+     * @author Andrea Borio andrea.borio(at)outlook.com
+     *
+     * Create new account function
+     * privKey, memoTypeCreate, memoCreate are mandatory
+     * Add a trustline on the new account overloading this function
+     *
+     * @param {string} memoTypeCreate - The type of memo the create transaction that you want create (text,id,return)
+     * @param {string} memoCreate - The content of memo the create transaction that you want create
+     * @param {string} memoTypeTrust - The type of memo the transaction that you want create (text,id,return)
+     * @param {string} startingBalance - The strarting balance of created account
+     * @param {string} memoTrust - The content of memo the change trust transaction that you want create (text,id,return)
+     * @param {string} issuer - The public key of the issuer
+     * @param {string} assetCode - The assetCode of the asset that you want to trust
+     * @param {string} trustLimit - The amount of coin that you want to trust from this issuer
+     */
     async createAccount(opts = {}) {
         return new Promise((resolve, reject) => {
             let memoTypeCreate = opts.memoTypeCreate || 'text'
@@ -599,8 +699,9 @@ class Account {
             }
             memoFinalCreate = memoFinalCreate.memo
             let des
-            try { des = StellarSdk.Keypair.fromSecret(this.privateKey) }
-            catch (err) {
+            try {
+                des = StellarSdk.Keypair.fromSecret(this.privateKey)
+            } catch (err) {
                 reject(errorManager('keyPair', -1))
                 return
             }
@@ -633,7 +734,7 @@ class Account {
                                 resolve(Acc)
                                 return
                             }
-                            Acc.changeTrust( issuer, assetCode, trustLimit)
+                            Acc.changeTrust(issuer, assetCode, trustLimit)
                                 .then(function (result) {
                                     resolve(Acc)
                                     return
@@ -650,18 +751,19 @@ class Account {
                 })
         })
     }
+
     /**
      * changeTrust function
      *
-     * 
-      * @param {string} issuer - The public key of the issuer 
+     *
+     * @param {string} issuer - The public key of the issuer
      * @param {string} assetCode - The assetCode of the asset that you want to trust
      * @param {string} trustLimit - The amount of coin that you want to trust from this issuer
-     * 
-     * 
+     *
+     *
      */
 
-    async  changeTrust(issuer, assetCode, trustLimit) {
+    async changeTrust(issuer, assetCode, trustLimit) {
         return new Promise((resolve, reject) => {
             if (typeof issuer == 'object' && issuer.constructor.name == "Account")
                 issuer = issuer.publicKey
@@ -677,7 +779,9 @@ class Account {
                 })
                 .then(function (sourceAccount) {
                     let asset
-                    try { asset = new StellarSdk.Asset(assetCode, issuer) } catch (err) {
+                    try {
+                        asset = new StellarSdk.Asset(assetCode, issuer)
+                    } catch (err) {
                         reject(err)
                         return
                     }
@@ -702,14 +806,15 @@ class Account {
                 })
         })
     }
+
     /**
      * mergeAccount function
      * @param {string} destintation - The destination for merge account
-     * 
-     * 
+     *
+     *
      */
 
-    async  mergeAccount(destination) {
+    async mergeAccount(destination) {
         return new Promise((resolve, reject) => {
             if (typeof destination == 'object' && destination.constructor.name == "Account")
                 destination = destination.publicKey
@@ -742,16 +847,17 @@ class Account {
                 })
         })
     }
+
     /**
      * manageData function
      *
-     * 
+     *
      * @param {string} name - Name of data <64Bytes || 64 Char in UTF8
      * @param {string} value - Value of data <64 Bytes || 64 Char in UTF8
-     * 
-     * 
+     *
+     *
      */
-    async  manageData(name, value, timeout = 15) {
+    async manageData(name, value, timeout = 15) {
         return new Promise((resolve, reject) => {
             let des = StellarSdk.Keypair.fromSecret(this.privateKey)
             server.loadAccount(des.publicKey())
@@ -796,10 +902,11 @@ class Account {
      */
     async createPassiveOffer(opts = {}) {
         return new Promise((resolve, reject) => {
+            console.log(opts)
             let sellingCode = opts.sellingCode || 'native'
             let sellingIssuer = opts.sellingIssuer || 'native'
             let amount = opts.amount || '0'
-            let price = opts.price || { 'd': 1, 'n': 1 }
+            let price = opts.price || {'d': 1, 'n': 1}
             let offerId = opts.offerId || '0'
             let buyingCode = opts.buyingCode || 'native'
             let buyingIssuer = opts.buyingIssuer || 'native'
@@ -817,17 +924,18 @@ class Account {
             }
             let buying, selling, des
             try {
-                (buyingCode == "native" || buyingIssuer == "native") ? buying = new StellarSdk.Asset.native() : buying = new StellarSdk.Asset(buyingCode, buyingIssuer)
+                (buyingCode === "native" || buyingIssuer === "native") ? buying = new StellarSdk.Asset.native() : buying = new StellarSdk.Asset(buyingCode, buyingIssuer)
             } catch (error) {
                 reject('StellarBurrito_ASSET_ERR Buying \n\r' + error)
             }
             try {
-                (sellingCode == "native" || sellingCode == "native") ? selling = new StellarSdk.Asset.native() : selling = new StellarSdk.Asset(sellingCode, sellingIssuer)
+                (sellingCode === "native" || sellingCode === "native") ? selling = new StellarSdk.Asset.native() : selling = new StellarSdk.Asset(sellingCode, sellingIssuer)
             } catch (error) {
                 reject('StellarBurrito_ASSET_ERR Selling \n\r' + error)
             }
-            try { des = StellarSdk.Keypair.fromSecret(this.privateKey) }
-            catch (err) {
+            try {
+                des = StellarSdk.Keypair.fromSecret(this.privateKey)
+            } catch (err) {
                 reject(errorManager('keyPair', -1))
                 return
             }
@@ -859,30 +967,30 @@ class Account {
     }
 
     /**
-      * Manage Offer function
-      * @param {string} opts#sellingCode {string} -Asset code that you want to sell
-      * @param {string} opts#sellingIssuer {string}  - Issuer's publicKey of the Asset that you want to sell
-      * @param {string} opts#amount {string} - The amount of coin that you want to sell
-      * @param {JSON} opts#price {json}- Issuer's publicKey of the Asset that you want to sell
-      * @param {string} opts#offerId {string} - If 0 create new offer
-      * @param {string} opts#buyingCode {string} - Asset code that you want to buy
-      * @param {string} opts#buyingIssuer {string} - Issuer's publicKey of the Asset that you want to sell
-      * @param {string} opts#source {string} - The source account (defaults to transaction source).
-      * @returns {JSON} result
-      */
+     * Manage Offer function
+     * @param {string} opts#sellingCode {string} -Asset code that you want to sell
+     * @param {string} opts#sellingIssuer {string}  - Issuer's publicKey of the Asset that you want to sell
+     * @param {string} opts#amount {string} - The amount of coin that you want to sell
+     * @param {JSON} opts#price {json}- Issuer's publicKey of the Asset that you want to sell
+     * @param {string} opts#offerId {string} - If 0 create new offer
+     * @param {string} opts#buyingCode {string} - Asset code that you want to buy
+     * @param {string} opts#buyingIssuer {string} - Issuer's publicKey of the Asset that you want to sell
+     * @param {string} opts#source {string} - The source account (defaults to transaction source).
+     * @returns {JSON} result
+     */
     async manageOffer(opts = {}) {
         return new Promise((resolve, reject) => {
             let sellingCode = opts.sellingCode || 'native'
             let sellingIssuer = opts.sellingIssuer || 'native'
             let amount = opts.amount || '0'
-            let price = opts.price || { 'd': 1, 'n': 1 }
+            let price = opts.price || {'d': 1, 'n': 1}
             let offerId = opts.offerId || '0'
             let buyingCode = opts.buyingCode || 'native'
             let buyingIssuer = opts.buyingIssuer || 'native'
             if (typeof sellingIssuer == 'object' && sellingIssuer.constructor.name == "Account")
                 sellingIssuer = sellingIssuer.publicKey
             else if (!StellarSdk.StrKey.isValidEd25519PublicKey(sellingIssuer) && sellingIssuer !== 'native') {
-                reject('Invalid issuer ' + errorManager('keyPair', -1))
+                reject('Invalid issuer ' + sellingIssuer + ' ' + errorManager('keyPair', -1))
                 return
             }
             if (typeof buyingIssuer == 'object' && buyingIssuer.constructor.name == "Account")
@@ -893,7 +1001,7 @@ class Account {
             }
             let buying, selling, des
             try {
-                (buyingCode == "native" || buyingIssuer == "native") ? buying = new StellarSdk.Asset.native() : buying = new StellarSdk.Asset(buyingCode, buyingIssuer)
+                (buyingCode === "native" || buyingIssuer === "native") ? buying = new StellarSdk.Asset.native() : buying = new StellarSdk.Asset(buyingCode, buyingIssuer)
             } catch (error) {
                 reject('StellarBurrito_ASSET_ERR Buying \n\r' + error)
             }
@@ -902,8 +1010,9 @@ class Account {
             } catch (error) {
                 reject('StellarBurrito_ASSET_ERR Selling \n\r' + error)
             }
-            try { des = StellarSdk.Keypair.fromSecret(this.privateKey) }
-            catch (err) {
+            try {
+                des = StellarSdk.Keypair.fromSecret(this.privateKey)
+            } catch (err) {
                 reject(errorManager('keyPair', -1))
                 return
             }
@@ -933,7 +1042,8 @@ class Account {
                 })
         })
     }
-    async  loadOffers(limit = 10) {
+
+    async loadOffers(limit = 10) {
         return new Promise((resolve, reject) => {
             let that = this
             server.offers('accounts', this.publicKey)
@@ -950,9 +1060,10 @@ class Account {
 
         })
     }
-    async  loadOperations(limit = 10) {
+
+    async loadOperations(limit = 10) {
         return new Promise((resolve, reject) => {
-            this.operations=[]
+            this.operations = []
             let that = this
             server.operations('accounts', this.publicKey)
                 .limit(limit)
@@ -969,4 +1080,5 @@ class Account {
         })
     }
 }
+
 module.exports = Account

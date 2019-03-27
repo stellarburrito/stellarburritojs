@@ -11,6 +11,7 @@ carlAccount = new Account()
 donaldAccount = new Account()
 let privKeyCreate = new Account()
 let testaccount = new Account(config.testaccount)
+
 function random() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -18,22 +19,23 @@ function random() {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 }
+
 step('Create new test account', () => {
     describe('Create new test account', function () {
         it('Account.createTestAccount', (done) => {
             aliceAccount.createTestAccount().then((result) => {
                 bobAccount.createTestAccount().then((result) => {
                     carlAccount.createTestAccount()
-                    .then((result) => {
-                        donaldAccount.createTestAccount()
-                            .then((result) => {
-                                testaccount.createTestAccount()
-                                    .then((result) => {
-                                        expect(1).to.equal(1);
-                                        done();
-                                    })
-                            })
-                    })
+                        .then((result) => {
+                            donaldAccount.createTestAccount()
+                                .then((result) => {
+                                    testaccount.createTestAccount()
+                                        .then((result) => {
+                                            expect(1).to.equal(1);
+                                            done();
+                                        })
+                                })
+                        })
                 })
             })
                 .catch((error) => {
@@ -110,16 +112,27 @@ step('Merge account', () => {
         }).timeout(30000)
     })
 })
-aliceAccount.createPassiveOffer()
+
 step('Create new asset', () => {
     describe('Create New Asset', function () {
-        it('assetOperations.createAsset', (done) => {
+        it('Asset.createAsset', (done) => {
             asset = random()
-            let newAsset = new Asset()
-            const resolvingPromise = newAsset.createAsset({ issuer: carlAccount, distributor: donaldAccount, amount: '100000', assetCode: asset })
+            let newAsset = new Asset('dlaskdal', carlAccount.publicKey)
+            console.log(JSON.stringify({
+                issuer: carlAccount.privateKey,
+                distributor: donaldAccount.privateKey,
+                amount: '100000',
+                assetCode: asset
+            }))
+            const resolvingPromise = newAsset.createAsset({
+                issuer: carlAccount.privateKey,
+                distributor: donaldAccount.privateKey,
+                amount: '100000',
+                assetCode: asset
+            })
             resolvingPromise.then((result) => {
                 expect(1).to.equal(1);
-                done();
+                done()
             })
                 .catch((error) => {
                     console.log(error)
@@ -132,7 +145,7 @@ step('Create new asset', () => {
 step('Pay from alice to bob', () => {
     it('paymentOperations.Pay', (done) => {
         describe('StellarBurrito test', function () {
-            const resolvingPromise = carlAccount.Pay({ destination: donaldAccount, amount: '0.000001' })
+            const resolvingPromise = carlAccount.Pay({destination: donaldAccount, amount: '0.000001'})
             resolvingPromise.then((result) => {
                 expect(1).to.equal(1);
                 done();
@@ -228,7 +241,12 @@ step('Get ledger', () => {
 step('Create Passive Offer', () => {
     describe('StellarBurrito test', function () {
         it('offerOperations.createPassiveOffer', (done) => {
-            const resolvingPromise = donaldAccount.createPassiveOffer({ sellingCode: asset, sellingIssuer: carlAccount, amount: '4', price: { 'd': 1, 'n': 1 } })
+            const resolvingPromise = donaldAccount.createPassiveOffer({
+                sellingCode: asset,
+                sellingIssuer: carlAccount,
+                amount: '4',
+                price: {'d': 1, 'n': 1}
+            })
             resolvingPromise.then((result) => {
                 expect(1).to.equal(1);
                 done();
@@ -244,7 +262,12 @@ step('Create Passive Offer', () => {
 step('Manage Offer', () => {
     describe('StellarBurrito test', function () {
         it('offerOperations.createPassiveOffer', (done) => {
-            const resolvingPromise = donaldAccount.manageOffer({ sellingCode: asset, sellingIssuer: carlAccount, amount: '4', price: { 'd': 1, 'n': 1 } })
+            const resolvingPromise = donaldAccount.manageOffer({
+                sellingCode: asset,
+                sellingIssuer: carlAccount,
+                amount: '4',
+                price: {'d': 1, 'n': 1}
+            })
             resolvingPromise.then((result) => {
                 expect(1).to.equal(1);
                 done();

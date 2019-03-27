@@ -12,10 +12,11 @@ if (typeof env != 'undefined' && env === "testnet") {
     StellarSdk.Network.usePublicNetwork()
     server = new StellarSdk.Server(config.pubnet_horizon)
 }
+
 class Asset {
     /**
-     * 
-     * @param {string} code  -> Asset Code 
+     *
+     * @param {string} code  -> Asset Code
      * @param {string} issuer -> Asset issuer
      */
     constructor(code, issuer) {
@@ -31,7 +32,18 @@ class Asset {
             auth_revocable: null,
             auth_immutable: null
         }
+
+
+        if (typeof this.code != 'undefined' && typeof this.issuer != 'undefined' && this.code != null && this.issuer != null) {
+            if (!StellarSdk.StrKey.isValidEd25519PublicKey(this.issuer))
+                throw 'Please provide a valid publicKey'
+            if (code.length > 12)
+                throw 'Verify your Asset code'
+            this.object = new StellarSdk.Asset(code, issuer)
+        } else
+            this.object = null
     }
+
     async Load() {
         return new Promise((resolve, reject) => {
             if (!StellarSdk.StrKey.isValidEd25519PublicKey(this.issuer)) {
@@ -62,11 +74,12 @@ class Asset {
                 })
         })
     }
+
     /**
- * @param {Number} cursor - Use as page index for explore all assets
- * @param {Number} limit  - How much assets you want back
- */
-    async  getAssets(cursor = 1, limit = 10) {
+     * @param {Number} cursor - Use as page index for explore all assets
+     * @param {Number} limit  - How much assets you want back
+     */
+    async getAssets(cursor = 1, limit = 10) {
         return new Promise((resolve, reject) => {
             server.assets()
                 .limit(limit)
@@ -80,10 +93,11 @@ class Asset {
                 })
         })
     }
+
     /**
      * @param {string} assetIssuer - Asset Issuer
      */
-    async  getAssetsForIssuer(assetIssuer) {
+    async getAssetsForIssuer(assetIssuer) {
         return new Promise((resolve, reject) => {
             server.assets()
                 .forIssuer(assetIssuer)
@@ -96,13 +110,14 @@ class Asset {
                 })
         })
     }
+
     /**
      * Create asset
      * Sender pays receiver an amount of coin.
      * you can specify more than one receiver and use custom asset and custom memo
-     * @param {string} opts#issuer - The private key of the issuer.      
+     * @param {string} opts#issuer - The private key of the issuer.
      * @param {string} opts#distributor - The secret key of the distributor
-     * @param {string} opts#amount - The amount of coins that sender pays to receiver 
+     * @param {string} opts#amount - The amount of coins that sender pays to receiver
      * @param {string} opts#assetCode - The assetCode of the asset that you want to trust
      */
     async createAsset(opts = {}) {
@@ -111,7 +126,7 @@ class Asset {
             let distributor = opts.distributor || 'error'
             if (typeof issuer == 'object' && issuer.constructor.name == "Account")
                 issuer = issuer.privateKey
-            else if (!StellarSdk.StrKey.isValidEd25519SecretSeed(issuer)) {
+            if (!StellarSdk.StrKey.isValidEd25519SecretSeed(issuer)) {
                 reject('Invalid issuer ' + errorManager('keyPair', -1))
                 return
             }
@@ -121,7 +136,6 @@ class Asset {
                 reject('Invalid distributor ' + errorManager('keyPair', -1))
                 return
             }
-
             let amount = opts.amount || 'error'
             let fee = opts.fee || 100
             let assetCode = opts.assetCode || 'error'
@@ -137,7 +151,7 @@ class Asset {
             let that = this
             dist.changeTrust(iss, assetCode, amount)
                 .then(res => {
-                    iss.Pay({ destination: dist, amount, assetCode, issuer: iss })
+                    iss.Pay({destination: dist, amount, assetCode, issuer: iss})
                         .then(function (res) {
                             that.code = assetCode
                             that.issuer = iss.publicKey
@@ -158,4 +172,5 @@ class Asset {
         })
     }
 }
+
 module.exports = Asset
